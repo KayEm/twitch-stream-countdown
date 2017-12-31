@@ -1,0 +1,12 @@
+/* You can add global styles to this file, and also import other style files */
+.display-3, .display-5 {
+    color: white;
+}
+.jumbotron {
+    background-color: #52357c;
+}
+.btn {
+    background-color: white;
+    border-color: white;
+    color: #52357c;
+}
