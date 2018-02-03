@@ -2,5 +2,5 @@ export class Channel {
     name: string;
     url: string;
     twitterHandle?: string;
-    upcomingStreamDate: Date;
+    upcomingStreamDate: string;
 }

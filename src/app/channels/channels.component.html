@@ -5,14 +5,14 @@
       <tr>
         <th scope="col">Twitch channel</th>
         <th scope="col">Twitter handle</th>
-        <th scope="col">Upcoming stream</th>
+        <th scope="col">Upcoming stream (local time)</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let channel of followedChannels">
         <td><a href="{{ channel.url }}" class="channel-link" target="_blank">{{ channel.name }}</a></td>
         <td><a href="{{ getTwitterUrl(channel.name) }}" class="handle-link" target="_blank">{{ channel.name }}</a></td>
-        <td>{{ channel.upcomingStreamDate | date : 'medium' }}</td>
+        <td>{{ channel.upcomingStreamDate }}</td>
       </tr>
     </tbody>
   </table>

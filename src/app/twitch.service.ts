@@ -9,6 +9,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { of } from 'rxjs/observable/of';
 
+import * as moment from 'moment';
+import 'moment-timezone';
+
 const httpOptions = {
   headers:
     new HttpHeaders(
@@ -34,16 +37,20 @@ export class TwitchService {
 
     return this.http.get(this.getUserFollowsUrl(user.name), httpOptions)
       .pipe(
-      map((response: any) => {
-        const channels: Channel[] = [];
-        response.follows.forEach(f => {
-          channels.push({ name: f.channel.display_name, url: f.channel.url, upcomingStreamDate: this.getNextStreamDate(f.channel.display_name) });
+        map((response: any) => {
+          const channels: Channel[] = [];
+          response.follows.forEach(f => {
+            channels.push({ 
+            name: f.channel.display_name, 
+            url: f.channel.url, 
+            upcomingStreamDate: this.getNextStreamDate(f.channel.display_name) 
+          });
         });
         return channels;
       }));
   }
 
-  getNextStreamDate(channelName: string): Date {
+  getNextStreamDate(channelName: string): string {
     var now = new Date();
     var dayOfWeek = now.getDay();
     for (let schedule of SCHEDULES) {
@@ -52,10 +59,9 @@ export class TwitchService {
       if (schedule.channelName === channelName && schedule.dayOfWeek >= dayOfWeek) {
         var scheduledDate = new Date();
         scheduledDate.setDate(now.getDate() + (schedule.dayOfWeek + (7 - now.getDay())) % 7);
-        scheduledDate.setHours(schedule.timeOfDay);
-        scheduledDate.setMinutes(0);
-        scheduledDate.setSeconds(0);
-        return scheduledDate;
+        scheduledDate.setHours(schedule.timeOfDay, 0);
+
+        return moment.tz(scheduledDate, schedule.timezone).format('YYYY-MMM-DD hh:mm');
       }
     }
 
