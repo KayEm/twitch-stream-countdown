@@ -10,8 +10,12 @@
     </thead>
     <tbody>
       <tr *ngFor="let channel of followedChannels">
-        <td><a href="{{ channel.url }}" class="channel-link" target="_blank">{{ channel.name }}</a></td>
-        <td><a href="{{ getTwitterUrl(channel.name) }}" class="handle-link" target="_blank">{{ channel.name }}</a></td>
+        <td>
+          <a href="{{ channel.url }}" class="channel-link" target="_blank">{{ channel.name }}</a>
+        </td>
+        <td>
+          <a href="{{ getTwitterUrl(channel.name) }}" class="handle-link" target="_blank">{{ channel.name }}</a>
+        </td>
         <td>{{ channel.upcomingStreamDate }}</td>
       </tr>
     </tbody>
