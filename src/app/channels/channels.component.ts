@@ -15,25 +15,14 @@ export class ChannelsComponent implements OnInit {
   constructor(private twitchService: TwitchService) { }
 
   ngOnInit() {
-    // if (location.hash) {
-    //   const parsedHash = queryString.parse(location.hash);
-    //   this.getFollowedChannels(parsedHash['access_token']);
-    // }
-    // else {
       var me = new User();
       me.name = 'fitgeekgirl';    
       this.getUserChannels(me);
-    // }
   }
 
   getUserChannels(user: User): void {
     this.twitchService.getUserChannels(user)
-      .then(followedChannels => this.followedChannels = followedChannels);
-  }
-
-  getFollowedChannels(token: string): void {
-    this.twitchService.getFollowedChannels(token)
-      .then(followedChannels => this.followedChannels = followedChannels);
+      .subscribe(followedChannels => this.followedChannels = followedChannels);
   }
 
   getTwitterUrl(handle: string): string {

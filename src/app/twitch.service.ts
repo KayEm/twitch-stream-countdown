@@ -3,17 +3,18 @@ import { Observable } from 'rxjs/Observable';
 
 import { Channel } from './channel';
 import { User } from './user';
+import { SCHEDULES } from './schedules';
 
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { of } from 'rxjs/observable/of';
 
 const httpOptions = {
-  headers: 
+  headers:
     new HttpHeaders(
       {
-        'Content-Type' : 'application/json',
-        'Client-ID' : '2rexbvlien4qdwv36868ie6vg6gt3k'
+        'Content-Type': 'application/json',
+        'Client-ID': '2rexbvlien4qdwv36868ie6vg6gt3k'
       }
     )
 };
@@ -29,34 +30,39 @@ export class TwitchService {
     return url;
   }
 
-  getFollowedChannels(token: string): Promise<Channel[]> {
-    httpOptions.headers.append('Authorization', token);
-    
-    return this.http.get<User>(this.userUrl, httpOptions)
-      .pipe(
-        tap(user => this.log(`fetched user`)),
-        catchError(this.handleError('getFollowedChannels', []))
-      )
-      .toPromise()
-      .then(this.getUserChannels);
-  }
+  getUserChannels(user: User): Observable<Channel[]> {
 
-  getUserChannels(user: User): Promise<Channel[]> {
     return this.http.get(this.getUserFollowsUrl(user.name), httpOptions)
       .pipe(
-        tap(channels => this.log(`fetched channels`)),
-        catchError(this.handleError('getChannels', []))
-      )
-      .toPromise().then(function(data) {
-        return (<any>data).follows.map(
-          followee => ({ 
-            name: followee.channel.display_name,
-            url: followee.channel.url
-          }));
-      });
+      map((response: any) => {
+        const channels: Channel[] = [];
+        response.follows.forEach(f => {
+          channels.push({ name: f.channel.display_name, url: f.channel.url, upcomingStreamDate: this.getNextStreamDate(f.channel.display_name) });
+        });
+        return channels;
+      }));
   }
 
-  private handleError<T> (operation = 'operation', result?: T) {
+  getNextStreamDate(channelName: string): Date {
+    var now = new Date();
+    var dayOfWeek = now.getDay();
+    for (let schedule of SCHEDULES) {
+      var name = schedule.channelName == channelName;
+      var next = schedule.dayOfWeek >= dayOfWeek;
+      if (schedule.channelName === channelName && schedule.dayOfWeek >= dayOfWeek) {
+        var scheduledDate = new Date();
+        scheduledDate.setDate(now.getDate() + (schedule.dayOfWeek + (7 - now.getDay())) % 7);
+        scheduledDate.setHours(schedule.timeOfDay);
+        scheduledDate.setMinutes(0);
+        scheduledDate.setSeconds(0);
+        return scheduledDate;
+      }
+    }
+
+    return null;
+  }
+
+  private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(error);
       this.log(`${operation} failed: ${error.message}`);
