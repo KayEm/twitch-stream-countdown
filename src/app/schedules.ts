@@ -35,5 +35,12 @@ export const SCHEDULES: Schedule[] = [
     dayOfWeek: 7,
     timeOfDay: 11,
     timezone: "EST"
+  }, // Sunday 11:00
+  {
+    id: 6,
+    channelName: "John_Papa",
+    dayOfWeek: 3,
+    timeOfDay: 14,
+    timezone: "EST"
   } // Sunday 11:00
 ];
