@@ -3,4 +3,5 @@ export class Channel {
   url: string;
   twitterHandle?: string;
   upcomingStreamDate: string;
+  countdown: string;
 }

@@ -7,11 +7,12 @@ import { HeaderComponent } from "./header/header.component";
 import { ChannelsComponent } from "./channels/channels.component";
 
 import { TwitchService } from "./twitch.service";
+import { ScheduleService } from "./schedule.service";
 
 @NgModule({
   declarations: [AppComponent, HeaderComponent, ChannelsComponent],
   imports: [BrowserModule, HttpClientModule],
-  providers: [TwitchService],
+  providers: [TwitchService, ScheduleService],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

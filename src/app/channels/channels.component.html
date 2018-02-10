@@ -6,6 +6,7 @@
         <th scope="col">Twitch channel</th>
         <th scope="col">Twitter handle</th>
         <th scope="col">Upcoming stream (local time)</th>
+        <th scope="col">Countdown to next stream</th>
       </tr>
     </thead>
     <tbody>
@@ -17,6 +18,7 @@
           <a href="{{ getTwitterUrl(channel.name) }}" class="handle-link" target="_blank">{{ channel.name }}</a>
         </td>
         <td>{{ channel.upcomingStreamDate }}</td>
+        <td>{{ channel.countdown }} </td>
       </tr>
     </tbody>
   </table>

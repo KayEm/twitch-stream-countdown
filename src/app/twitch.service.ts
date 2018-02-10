@@ -1,13 +1,15 @@
 import { Injectable } from "@angular/core";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Observable } from "rxjs/Observable";
+import { catchError, map, tap } from "rxjs/operators";
+import { of } from "rxjs/observable/of";
+
+import { environment } from "../environments/environment";
 
 import { Channel } from "./channel";
 import { User } from "./user";
-import { SCHEDULES } from "./schedules";
-
-import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { catchError, map, tap } from "rxjs/operators";
-import { of } from "rxjs/observable/of";
+import { Schedule } from "./schedule";
+import { ScheduleService } from "./schedule.service";
 
 import * as moment from "moment";
 import "moment-timezone";
@@ -15,30 +17,32 @@ import "moment-timezone";
 const httpOptions = {
   headers: new HttpHeaders({
     "Content-Type": "application/json",
-    "Client-ID": "2rexbvlien4qdwv36868ie6vg6gt3k"
+    "Client-ID": environment.twitchClientID
   })
 };
 
 @Injectable()
 export class TwitchService {
-  private userUrl = "https://api.twitch.tv/kraken/user";
-
-  constructor(private http: HttpClient) {}
-
-  getUserFollowsUrl(userId): string {
-    let url = `https://api.twitch.tv/kraken/users/${userId}/follows/channels`;
-    return url;
-  }
+  constructor(
+    private http: HttpClient,
+    private scheduleService: ScheduleService
+  ) {}
 
   getUserChannels(user: User): Observable<Channel[]> {
-    return this.http.get(this.getUserFollowsUrl(user.name), httpOptions).pipe(
+    const url = `https://api.twitch.tv/kraken/users/${
+      user.name
+    }/follows/channels`;
+    return this.http.get(url, httpOptions).pipe(
+      tap(_ => console.log(`fetched user id=${user.name}`)),
+      catchError(this.handleError<User>(`getUser id=${user.name}`)),
       map((response: any) => {
         const channels: Channel[] = [];
         response.follows.forEach(f => {
           channels.push({
             name: f.channel.display_name,
             url: f.channel.url,
-            upcomingStreamDate: this.getNextStreamDate(f.channel.display_name)
+            upcomingStreamDate: this.getNextStreamDate(f.channel.display_name),
+            countdown: this.getCountdown(f.channel.display_name)
           });
         });
         return channels;
@@ -47,39 +51,39 @@ export class TwitchService {
   }
 
   getNextStreamDate(channelName: string): string {
-    var now = new Date();
-    var dayOfWeek = now.getDay();
-    for (let schedule of SCHEDULES) {
-      var name = schedule.channelName == channelName;
-      var next = schedule.dayOfWeek >= dayOfWeek;
-      if (
-        schedule.channelName === channelName &&
-        schedule.dayOfWeek >= dayOfWeek
-      ) {
-        var scheduledDate = new Date();
-        scheduledDate.setDate(
-          now.getDate() + (schedule.dayOfWeek + (7 - now.getDay())) % 7
-        );
-        scheduledDate.setHours(schedule.timeOfDay, 0);
-
-        return moment
-          .tz(scheduledDate, schedule.timezone)
-          .format("YYYY-MMM-DD hh:mm");
-      }
+    let nextStreamDateMoment = this.scheduleService.getNextStreamDateMoment(
+      channelName
+    );
+    if (nextStreamDateMoment) {
+      return nextStreamDateMoment.format("YYYY-MMM-DD hh:mm");
     }
 
-    return null;
+    return "";
+  }
+
+  getCountdown(channelName: string): string {
+    let now = new Date();
+    console.log(now);
+    let localScheduledDate = this.scheduleService.getNextStreamDateMoment(
+      channelName
+    );
+
+    if (localScheduledDate) {
+      let duration = moment(localScheduledDate.diff(now));
+      console.log("Days:", duration.days());
+      console.log("Hours:", duration.hours());
+      console.log("Minutes:", duration.minutes());
+
+      return duration.format("D[ day(s)] H[ hour(s)] m[ minute(s)]");
+    }
+
+    return "";
   }
 
   private handleError<T>(operation = "operation", result?: T) {
     return (error: any): Observable<T> => {
-      console.error(error);
-      this.log(`${operation} failed: ${error.message}`);
+      console.log(`${operation} failed: ${error.message}`);
       return of(result as T);
     };
-  }
-
-  private log(message: string) {
-    console.warn("TwitchService: " + message);
   }
 }
