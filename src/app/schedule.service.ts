@@ -7,7 +7,7 @@ import * as moment from "moment";
 
 @Injectable()
 export class ScheduleService {
-  constructor() {}
+  constructor() { }
 
   getNextStreamDateMoment(channelName: string): moment.Moment {
     let now = new Date();
@@ -23,19 +23,18 @@ export class ScheduleService {
 
   getNextSchedule(channelName: string, now: Date): Schedule {
     let nextSchedule;
-    for (const schedule of SCHEDULES) {
-      if (schedule.channelName === channelName) {
-        let scheduledDate = moment(this.getDateFromSchedule(schedule, now));
-        let duration = moment(scheduledDate.diff(now));
-        if (duration.days() >= 0 && duration.hours() >= 0) {
-          if (!nextSchedule) {
-            nextSchedule = schedule;
-          } else if (nextSchedule.dayOfWeek >= schedule.dayOfWeek) {
-            nextSchedule = schedule;
-          }
+    let nextScheduleDuration;
+    for (const currentSchedule of SCHEDULES) {
+      if (currentSchedule.channelName === channelName) {
+        let currentScheduledDate = moment(this.getDateFromSchedule(currentSchedule, now));
+        let currentScheduleDuration = moment(currentScheduledDate.diff(now));
+        if ((currentScheduleDuration.days() >= 0 && currentScheduleDuration.hours() >= 0) && (!nextSchedule || nextScheduleDuration > currentScheduleDuration)) {
+          nextSchedule = currentSchedule;
+          nextScheduleDuration = currentScheduleDuration;
         }
       }
     }
+
     return nextSchedule;
   }
 
