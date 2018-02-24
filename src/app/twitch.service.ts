@@ -26,12 +26,13 @@ export class TwitchService {
   constructor(
     private http: HttpClient,
     private scheduleService: ScheduleService
-  ) { }
+  ) {}
 
   getUserChannels(user: User): Observable<Channel[]> {
-    const url = `https://api.twitch.tv/kraken/users/${
-      user.name
-      }/follows/channels`;
+    const url =
+      environment.twitchUsersBaseUrl +
+      user.name +
+      environment.twitchFollowsChannelsUrl;
     return this.http.get(url, httpOptions).pipe(
       tap(_ => console.log(`fetched user id=${user.name}`)),
       catchError(this.handleError<User>(`getUser id=${user.name}`)),
@@ -62,19 +63,13 @@ export class TwitchService {
   }
 
   getCountdown(channelName: string): string {
-    let now = new Date();
-    console.log(now);
-    let localScheduledDate = this.scheduleService.getNextStreamDateMoment(
+    let now = moment(new Date(), moment.tz.guess());
+    let scheduledDate = this.scheduleService.getNextStreamDateMoment(
       channelName
     );
 
-    if (localScheduledDate) {
-      console.log(localScheduledDate);
-      let duration = moment(localScheduledDate.diff(now));
-      console.log("Days:", duration.days());
-      console.log("Hours:", duration.hours());
-      console.log("Minutes:", duration.minutes());
-
+    if (scheduledDate) {
+      let duration = moment(scheduledDate.diff(now));
       return duration.format("D[ day(s)] H[ hour(s)] m[ minute(s)]");
     }
 
